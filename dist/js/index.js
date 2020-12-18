@@ -1,23 +1,5 @@
 $(() => {
-    (function () {
-        var p = HTMLElement.prototype;
-        p.clAdd = function (cls) {
-            this.classList.add(cls);
-            return this;
-        };
-
-        p.clRemove = function (cls) {
-            this.classList.remove(cls);
-            return this;
-        };
-
-        p.clToggle = function (cls) {
-            this.classList.toggle(cls);
-            return this;
-        };
-    })();
-
-    url = "https://www.anapioficeandfire.com/api/characters?pageSize=50";
+    let url = "https://www.anapioficeandfire.com/api/characters?pageSize=50";
 
     const request = new XMLHttpRequest();
 
@@ -32,7 +14,6 @@ $(() => {
             let finalString = linkString[0]
                 .split(",")
                 .filter((eachStr) => eachStr.trim().endsWith(`rel="last"`))[0];
-            // let numPages = Number(regex.exec(finalString)[0]);
             let numPages = Number(regex.exec(finalString)[0]);
             grabAllCharacterData(numPages);
         }
@@ -67,9 +48,9 @@ $(() => {
         for (const character of charArr) {
             renderCharacter(character);
             count++;
-            if (count > 70) {
-                break;
-            }
+            // if (count > 70) {
+            //     break;
+            // }
         }
     };
 
@@ -79,7 +60,7 @@ $(() => {
             let newCardHTML = `
         <button id="card" data-apiurl="${
             character.url
-        }" href="https://www.google.com/" class="block group transition-all duration-300 bg-white hover:shadow-2xl border border-blueGray-200 hover:border-2 hover:border-white min-h-40">
+        }" href="https://www.google.com/" class="block group transition-all duration-1000 bg-white hover:shadow-2xl border border-blueGray-200 hover:border-2 hover:border-white min-h-40">
             <div class="front">
                 <div id="name" class="text-3xl p-4 flex flex-row flex-wrap justify-center content-center">
                     <div class="text-center whitespace-pre-line">${character.name.replace(
@@ -103,48 +84,24 @@ $(() => {
         </div>
         </button>`;
             resultsDiv.insertAdjacentHTML("beforeend", newCardHTML);
+            observer.observe(resultsDiv.lastElementChild);
         }
     };
-
-    // document.querySelector("#results").addEventListener("mouseenter", (e) => {
-    //     let card = e.target.closest("button");
-    //     // card.clAdd("bg-red-500");
-    //     if (card) {
-    //         card.clAdd("bg-red-500").clAdd("text-sm");
-    //         card.children[0].classList.add("hidden");
-    //         card.children[1].classList.remove("hidden");
-    //         console.log(card.dataset.apiurl)
-    //     }
-
-    // }); // capturing phase
-    // document.querySelector("#results").addEventListener("mouseleave", (e) => {
-    //     let card = e.target.closest("button");
-
-    //     // card.clRemove("bg-red-500");
-    //     if (card) {
-    //         card.clRemove("bg-red-500").clRemove("text-sm");
-    //         card.children[0].classList.remove("hidden");
-    //         card.children[1].classList.add("hidden");
-    //         // $.getJSON()
-    //     }
-    // }); // capturing phase
 
     $("#results").on("mouseenter", "button", function () {
         this.classList.add("bg-red-500", "text-sm");
         this.children[0].classList.add("hidden");
         this.children[1].classList.remove("hidden");
-        $.getJSON(this.dataset.apiurl)
-            .done((data) => {
-                console.log(data);
-                if (data.allegiances.length > 0) {
-                    $.getJSON(data.allegiances[0]).done((data) => {
-                        // data.name
-                        this.querySelector(".allegiance-name").textContent =
-                            data.name;
-                    });
-                }
-            })
-            .done();
+        $.getJSON(this.dataset.apiurl).done((data) => {
+            console.log(data);
+            if (data.allegiances.length > 0) {
+                $.getJSON(data.allegiances[0]).done((data) => {
+                    // data.name
+                    this.querySelector(".allegiance-name").textContent =
+                        data.name;
+                });
+            }
+        });
     });
 
     $("#results").on("mouseleave", "button", function () {
@@ -154,19 +111,33 @@ $(() => {
     });
 });
 
-// // fetch(url, {
-// //     // mode: 'cors', // no-cors, *cors, same-origin
-// //     credentials: 'include', // include, *same-origin, omit
-// //   })
-// // .then(response => {
-// //     console.log(response.headers);
-// //     // console.log(response.json())
-// //     return response.json()
-// // })
-// // .then(data => console.log(data))
+let options = {
+    root: null,
+    rootMargin: "1000px",
+    threshold: 0,
+};
 
-// // var req = new XMLHttpRequest();
-// // req.open('GET', url);
-// // req.send();
-// // var headers = req.getAllResponseHeaders().toLowerCase();
-// // alert(headers);
+const observer = new IntersectionObserver(
+    (entries) => {
+        entries
+            .filter((entry) => entry.isIntersecting)
+            .forEach((entry) => {
+                let button = entry.target;
+                $.getJSON(button.dataset.apiurl).done((data) => {
+                    console.log(data);
+                    if (data.allegiances.length > 0) {
+                        $.getJSON(data.allegiances[0]).done((data) => {
+                            button.querySelector(
+                                ".allegiance-name"
+                            ).textContent = data.name;
+                        });
+                    }
+                });
+            });
+    },
+    {
+        root: null,
+        threshold: 0,
+        rootMargin: "1000px",
+    }
+);
