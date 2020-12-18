@@ -92,16 +92,18 @@ $(() => {
         this.classList.add("bg-red-500", "text-sm");
         this.children[0].classList.add("hidden");
         this.children[1].classList.remove("hidden");
-        $.getJSON(this.dataset.apiurl).done((data) => {
-            console.log(data);
-            if (data.allegiances.length > 0) {
-                $.getJSON(data.allegiances[0]).done((data) => {
-                    // data.name
-                    this.querySelector(".allegiance-name").textContent =
-                        data.name;
-                });
-            }
-        });
+        if (this.querySelector(".allegiance-name").textContent.length === 0) {
+            $.getJSON(this.dataset.apiurl).done((data) => {
+                console.log(data);
+                if (data.allegiances.length > 0) {
+                    $.getJSON(data.allegiances[0]).done((data) => {
+                        // data.name
+                        this.querySelector(".allegiance-name").textContent =
+                            data.name;
+                    });
+                }
+            });
+        }
     });
 
     $("#results").on("mouseleave", "button", function () {
@@ -123,16 +125,21 @@ const observer = new IntersectionObserver(
             .filter((entry) => entry.isIntersecting)
             .forEach((entry) => {
                 let button = entry.target;
-                $.getJSON(button.dataset.apiurl).done((data) => {
-                    console.log(data);
-                    if (data.allegiances.length > 0) {
-                        $.getJSON(data.allegiances[0]).done((data) => {
-                            button.querySelector(
-                                ".allegiance-name"
-                            ).textContent = data.name;
-                        });
-                    }
-                });
+                if (
+                    button.querySelector(".allegiance-name").textContent
+                        .length === 0
+                ) {
+                    $.getJSON(button.dataset.apiurl).done((data) => {
+                        console.log(data);
+                        if (data.allegiances.length > 0) {
+                            $.getJSON(data.allegiances[0]).done((data) => {
+                                button.querySelector(
+                                    ".allegiance-name"
+                                ).textContent = data.name;
+                            });
+                        }
+                    });
+                }
             });
     },
     {
